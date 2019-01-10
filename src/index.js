@@ -59,28 +59,13 @@ class TransformerComponent extends React.Component {
 class App extends Component {
   state = {
     mousePos: "",
-    rectangles: [
-      {
-        x: 10,
-        y: 10,
-        width: 100,
-        height: 100,
-        fill: "red",
-        name: "rect1"
-      },
-      {
-        x: 150,
-        y: 150,
-        width: 100,
-        height: 100,
-        fill: "green",
-        name: "rect2"
-      }
-    ],
+    prevX: "",
+    prevY: "",
+    rectangles: [],
     selectedShapeName: ""
   };
 
-  drawNewRec = (xPos, yPos) => {
+  drawNewRec = (prevX, prevY, xPos, yPos) => {
     const fillColors = [
       "purple",
       "blue",
@@ -90,8 +75,8 @@ class App extends Component {
       "red",
       "green"
     ];
-    let randomColor = fillColors[Math.floor(Math.random() * 6)];
-    //make a unique name for the rec
+    let randomColor = fillColors[Math.floor(Math.random() * 7)];
+    //make a unique name for the rect
     let setName = () => {
       let numOfRecs = this.state.rectangles.length + 1;
       return "rect" + numOfRecs;
@@ -101,28 +86,25 @@ class App extends Component {
       rectangles: [
         ...this.state.rectangles,
         {
-          x: xPos,
-          y: yPos,
-          width: 100,
-          height: 100,
+          x: prevX - (prevX - xPos),
+          y: prevY - (prevY - yPos),
+          width: prevX - xPos,
+          height: prevY - yPos,
           fill: randomColor,
           name: setName()
         }
       ]
     });
-    //later we can make its x/y position will be the mouse x/y position onMouseDown
-  };
-
-  createRec = e => {
-    this.setState({
-      mousePos: "x:" + e.target.pointerPos.x + " y: " + e.target.pointerPos.y
-    });
-    this.drawNewRec(e.target.pointerPos.x, e.target.pointerPos.y);
   };
 
   handleStageMouseDown = e => {
     // clicked on stage - cler selection
     if (e.target === e.target.getStage()) {
+      this.setState({
+        prevX: e.target.pointerPos.x,
+        prevY: e.target.pointerPos.y,
+        mousePos: "CLICK N DRAG TO MAKE A SHAPE"
+      });
       this.setState({
         selectedShapeName: ""
       });
@@ -148,6 +130,17 @@ class App extends Component {
       });
     }
   };
+  handleStageMouseUp = e => {
+    let xPos = e.target.pointerPos.x;
+    let yPos = e.target.pointerPos.y;
+    let prevX = this.state.prevX;
+    let prevY = this.state.prevY;
+    console.log(xPos, yPos, prevX, prevY);
+    this.setState({
+      mousePos: "x:" + xPos + " y: " + yPos
+    });
+    this.drawNewRec(prevX, prevY, xPos, yPos);
+  };
   render() {
     return (
       <div>
@@ -159,6 +152,7 @@ class App extends Component {
           width={window.innerWidth}
           height={window.innerHeight}
           onMouseDown={this.handleStageMouseDown}
+          onMouseUp={this.handleStageMouseUp}
           onClick={this.createRec}
         >
           <Layer>
